@@ -53,6 +53,13 @@ class Pet:
         """Return all tasks for this pet."""
         return self.tasks
 
+    def get_pending_tasks(self) -> List["Task"]:
+        """Return incomplete tasks for this pet sorted by time."""
+        return sorted(
+            [task for task in self.tasks if not task.completed],
+            key=lambda task: (task.due_time, -task.priority.value)
+        )
+
 
 @dataclass
 class Task:
@@ -86,17 +93,25 @@ class Scheduler:
         """Load all tasks from an owner."""
         self.tasks = owner.get_all_tasks()
 
-    def sort_tasks(self) -> List[Task]:
-        """Sort tasks by time and priority."""
+    def sort_by_time(self) -> List[Task]:
+        """Sort tasks by due time and priority."""
         return sorted(
             self.tasks,
             key=lambda task: (task.due_time, -task.priority.value)
         )
 
+    def filter_by_completion(self, completed: bool) -> List[Task]:
+        """Return tasks filtered by completion status."""
+        return [task for task in self.tasks if task.completed == completed]
+
+    def filter_by_pet(self, pet_name: str) -> List[Task]:
+        """Return tasks for a specific pet."""
+        return [task for task in self.tasks if task.pet.name == pet_name]
+
     def detect_conflicts(self) -> List[str]:
         """Detect overlapping tasks."""
         conflicts = []
-        sorted_tasks = self.sort_tasks()
+        sorted_tasks = self.sort_by_time()
 
         for i in range(len(sorted_tasks) - 1):
             current_task = sorted_tasks[i]
@@ -115,8 +130,8 @@ class Scheduler:
         return conflicts
 
     def generate_daily_plan(self) -> List[Task]:
-        """Return incomplete tasks in order."""
-        return [task for task in self.sort_tasks() if not task.completed]
+        """Return incomplete tasks in sorted order."""
+        return [task for task in self.sort_by_time() if not task.completed]
 
 
 if __name__ == "__main__":
