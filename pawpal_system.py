@@ -1,22 +1,31 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
+from datetime import time
+from enum import Enum
+
+
+class Priority(Enum):
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
 
 
 @dataclass
 class Task:
     title: str
     category: str
-    due_time: str
+    due_time: time
     duration: int
-    priority: str
-    recurring: bool
-    completed: bool
+    priority: Priority
+    recurring: bool = False
+    completed: bool = False
+    pet: 'Pet'
 
     def mark_complete(self) -> None:
         pass
 
-    def update_time(self, new_time: str) -> None:
+    def update_time(self, new_time: time) -> None:
         pass
 
 
@@ -25,7 +34,8 @@ class Pet:
     name: str
     species: str
     age: int
-    tasks: List[Task]
+    tasks: List[Task] = field(default_factory=list)
+    owner: 'Owner'
 
     def add_task(self, task: Task) -> None:
         pass
@@ -37,10 +47,10 @@ class Pet:
         pass
 
 
+@dataclass
 class Owner:
-    def __init__(self, name: str):
-        self.name: str = name
-        self.pets: List[Pet] = []
+    name: str
+    pets: List[Pet] = field(default_factory=list)
 
     def add_pet(self, pet: Pet) -> None:
         pass
@@ -49,14 +59,28 @@ class Owner:
         pass
 
 
+@dataclass
 class Scheduler:
-    def __init__(self):
-        self.tasks: List[Task] = []
+    tasks: List[Task] = field(default_factory=list)
 
     def sort_tasks(self) -> None:
         pass
 
     def detect_conflicts(self) -> List[Task]:
+        pass
+
+    def generate_daily_plan(self) -> List[Task]:
+        pass
+
+
+@dataclass
+class Scheduler:
+    tasks: List[Task] = field(default_factory=list)
+
+    def sort_tasks(self) -> List[Task]:
+        pass
+
+    def detect_conflicts(self) -> List[str]:
         pass
 
     def generate_daily_plan(self) -> List[Task]:
