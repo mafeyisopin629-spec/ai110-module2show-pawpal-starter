@@ -17,12 +17,15 @@ class Owner:
     pets: List["Pet"] = field(default_factory=list)
 
     def add_pet(self, pet: "Pet") -> None:
+        """Add a pet to the owner."""
         self.pets.append(pet)
 
     def get_pets(self) -> List["Pet"]:
+        """Return all pets owned."""
         return self.pets
 
     def get_all_tasks(self) -> List["Task"]:
+        """Return all tasks from all pets."""
         all_tasks = []
         for pet in self.pets:
             all_tasks.extend(pet.get_tasks())
@@ -38,13 +41,16 @@ class Pet:
     tasks: List["Task"] = field(default_factory=list)
 
     def add_task(self, task: "Task") -> None:
+        """Add a task to the pet."""
         self.tasks.append(task)
 
     def remove_task(self, task: "Task") -> None:
+        """Remove a task from the pet."""
         if task in self.tasks:
             self.tasks.remove(task)
 
     def get_tasks(self) -> List["Task"]:
+        """Return all tasks for this pet."""
         return self.tasks
 
 
@@ -60,9 +66,11 @@ class Task:
     completed: bool = False
 
     def mark_complete(self) -> None:
+        """Mark the task as completed."""
         self.completed = True
 
     def update_time(self, new_time: time) -> None:
+        """Update the task's scheduled time."""
         self.due_time = new_time
 
 
@@ -71,18 +79,22 @@ class Scheduler:
     tasks: List[Task] = field(default_factory=list)
 
     def add_task(self, task: Task) -> None:
+        """Add a task to the scheduler."""
         self.tasks.append(task)
 
     def load_tasks_from_owner(self, owner: Owner) -> None:
+        """Load all tasks from an owner."""
         self.tasks = owner.get_all_tasks()
 
     def sort_tasks(self) -> List[Task]:
+        """Sort tasks by time and priority."""
         return sorted(
             self.tasks,
             key=lambda task: (task.due_time, -task.priority.value)
         )
 
     def detect_conflicts(self) -> List[str]:
+        """Detect overlapping tasks."""
         conflicts = []
         sorted_tasks = self.sort_tasks()
 
@@ -103,6 +115,7 @@ class Scheduler:
         return conflicts
 
     def generate_daily_plan(self) -> List[Task]:
+        """Return incomplete tasks in order."""
         return [task for task in self.sort_tasks() if not task.completed]
 
 
