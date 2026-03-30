@@ -59,3 +59,23 @@ To run the automated tests:
 
 ```bash
 python -m pytest
+
+## Features
+
+- Task scheduling by date, time, and priority
+- Automatic sorting of tasks in chronological order
+- Filtering tasks by pet name and completion status
+- Conflict detection for overlapping tasks
+- Recurring tasks (daily and weekly)
+- Automatic generation of future tasks for recurring events
+- Clean Streamlit UI for interaction.
+
+## PawPal+
+
+PawPal+ is a smart pet care scheduling system that helps pet owners organize tasks based on time, priority, and recurrence. It includes conflict detection, filtering, and an interactive Streamlit interface.
+
+## Demo
+
+<a href="screenshot.png" target="_blank">
+  <img src="screenshot.png" width="600"/>
+</a>
