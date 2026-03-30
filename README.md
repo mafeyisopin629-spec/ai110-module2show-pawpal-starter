@@ -52,3 +52,10 @@ PawPal+ now includes enhanced scheduling intelligence:
 - Conflict detection identifies overlapping tasks and returns clear warning messages
 
 These improvements make the system more efficient and user-friendly for managing pet care schedules.
+
+## Testing PawPal+
+
+To run the automated tests:
+
+```bash
+python -m pytest
