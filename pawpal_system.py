@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List
-from datetime import time, timedelta, datetime
+from datetime import time, timedelta, datetime, date
 from enum import Enum
 
 
@@ -69,8 +69,9 @@ class Task:
     duration: int
     priority: Priority
     pet: Pet
-    recurring: bool = False
+    recurring: str = "none"   # none, daily, weekly
     completed: bool = False
+    due_date: date = field(default_factory=date.today)
 
     def mark_complete(self) -> None:
         """Mark the task as completed."""
@@ -94,10 +95,10 @@ class Scheduler:
         self.tasks = owner.get_all_tasks()
 
     def sort_by_time(self) -> List[Task]:
-        """Sort tasks by due time and priority."""
+        """Sort tasks by due date, due time, and priority."""
         return sorted(
             self.tasks,
-            key=lambda task: (task.due_time, -task.priority.value)
+            key=lambda task: (task.due_date, task.due_time, -task.priority.value)
         )
 
     def filter_by_completion(self, completed: bool) -> List[Task]:
@@ -109,44 +110,51 @@ class Scheduler:
         return [task for task in self.tasks if task.pet.name == pet_name]
 
     def detect_conflicts(self) -> List[str]:
-        """Detect overlapping tasks."""
-        conflicts = []
-        sorted_tasks = self.sort_by_time()
+    """Detect overlapping tasks."""
+    conflicts = []
+    sorted_tasks = self.sort_by_time()
 
-        for i in range(len(sorted_tasks) - 1):
-            current_task = sorted_tasks[i]
-            next_task = sorted_tasks[i + 1]
+    for current_task, next_task in zip(sorted_tasks, sorted_tasks[1:]):
+        if current_task.due_date != next_task.due_date:
+            continue
 
-            current_start = datetime.combine(datetime.today(), current_task.due_time)
-            current_end = current_start + timedelta(minutes=current_task.duration)
-            next_start = datetime.combine(datetime.today(), next_task.due_time)
+        current_end = datetime.combine(current_task.due_date, current_task.due_time) + timedelta(minutes=current_task.duration)
+        next_start = datetime.combine(next_task.due_date, next_task.due_time)
 
-            if current_end > next_start:
-                conflicts.append(
-                    f"Conflict between '{current_task.title}' for {current_task.pet.name} "
-                    f"and '{next_task.title}' for {next_task.pet.name}"
-                )
+        if current_end > next_start:
+            conflicts.append(
+                f"Conflict between '{current_task.title}' for {current_task.pet.name} "
+                f"and '{next_task.title}' for {next_task.pet.name}"
+            )
 
-        return conflicts
+    return conflicts
+
+    def mark_task_complete(self, task: Task) -> None:
+        """Mark a task complete and create the next recurring task if needed."""
+        task.mark_complete()
+
+        if task.recurring == "daily":
+            next_date = task.due_date + timedelta(days=1)
+        elif task.recurring == "weekly":
+            next_date = task.due_date + timedelta(weeks=1)
+        else:
+            return
+
+        new_task = Task(
+            title=task.title,
+            category=task.category,
+            due_time=task.due_time,
+            duration=task.duration,
+            priority=task.priority,
+            pet=task.pet,
+            recurring=task.recurring,
+            completed=False,
+            due_date=next_date,
+        )
+
+        task.pet.add_task(new_task)
+        self.tasks.append(new_task)
 
     def generate_daily_plan(self) -> List[Task]:
         """Return incomplete tasks in sorted order."""
         return [task for task in self.sort_by_time() if not task.completed]
-
-
-if __name__ == "__main__":
-    owner = Owner("Feyi")
-    pet = Pet("Bella", "Dog", 3, owner)
-    owner.add_pet(pet)
-
-    task = Task("Morning Walk", "Walk", time(8, 0), 30, Priority.HIGH, pet)
-    pet.add_task(task)
-
-    scheduler = Scheduler()
-    scheduler.load_tasks_from_owner(owner)
-
-    print("Tasks:")
-    for t in scheduler.generate_daily_plan():
-        print(f"{t.title} - {t.pet.name} at {t.due_time}")
-
-    print("Conflicts:", scheduler.detect_conflicts())

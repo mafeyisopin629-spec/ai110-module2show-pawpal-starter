@@ -30,6 +30,11 @@ I made a few small design changes after reviewing my class skeleton. I added exp
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
 
+Answer
+One tradeoff in my scheduler is that I prioritized readability over advanced optimization in my conflict detection algorithm. I used a simple approach that compares adjacent tasks after sorting them by time. This makes the logic easy to understand and maintain, but it may not handle more complex scheduling scenarios beyond basic overlaps. 
+
+I chose this design because it fits the current scale of the application and keeps the code clear and beginner-friendly.
+
 ---
 
 ## 3. AI Collaboration
