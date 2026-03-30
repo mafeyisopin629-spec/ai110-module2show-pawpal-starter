@@ -110,24 +110,58 @@ class Scheduler:
         return [task for task in self.tasks if task.pet.name == pet_name]
 
     def detect_conflicts(self) -> List[str]:
-    """Detect overlapping tasks."""
-    conflicts = []
-    sorted_tasks = self.sort_by_time()
+        """Detect overlapping tasks."""
+        conflicts = []
+        sorted_tasks = self.sort_by_time()
 
-    for current_task, next_task in zip(sorted_tasks, sorted_tasks[1:]):
-        if current_task.due_date != next_task.due_date:
-            continue
+        for current_task, next_task in zip(sorted_tasks, sorted_tasks[1:]):
+            if current_task.due_date != next_task.due_date:
+                continue
 
-        current_end = datetime.combine(current_task.due_date, current_task.due_time) + timedelta(minutes=current_task.duration)
-        next_start = datetime.combine(next_task.due_date, next_task.due_time)
-
-        if current_end > next_start:
-            conflicts.append(
-                f"Conflict between '{current_task.title}' for {current_task.pet.name} "
-                f"and '{next_task.title}' for {next_task.pet.name}"
+            current_end = datetime.combine(
+                current_task.due_date, current_task.due_time
+            ) + timedelta(minutes=current_task.duration)
+            next_start = datetime.combine(
+                next_task.due_date, next_task.due_time
             )
 
-    return conflicts
+            if current_end > next_start:
+                conflicts.append(
+                    f"Conflict between '{current_task.title}' for {current_task.pet.name} "
+                    f"and '{next_task.title}' for {next_task.pet.name}"
+                )
+
+        return conflicts
+
+    def mark_task_complete(self, task: Task) -> None:
+        """Mark a task complete and create the next recurring task if needed."""
+        task.mark_complete()
+
+        if task.recurring == "daily":
+            next_date = task.due_date + timedelta(days=1)
+        elif task.recurring == "weekly":
+            next_date = task.due_date + timedelta(weeks=1)
+        else:
+            return
+
+        new_task = Task(
+            title=task.title,
+            category=task.category,
+            due_time=task.due_time,
+            duration=task.duration,
+            priority=task.priority,
+            pet=task.pet,
+            recurring=task.recurring,
+            completed=False,
+            due_date=next_date,
+        )
+
+        task.pet.add_task(new_task)
+        self.tasks.append(new_task)
+
+    def generate_daily_plan(self) -> List[Task]:
+        """Return incomplete tasks in sorted order."""
+        return [task for task in self.sort_by_time() if not task.completed]
 
     def mark_task_complete(self, task: Task) -> None:
         """Mark a task complete and create the next recurring task if needed."""
